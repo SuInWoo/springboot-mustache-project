@@ -48,12 +48,38 @@ public class ArticleController {
             return "error";
     }
 
-
-    @PostMapping("")
+    @PostMapping("/posts")
     public String createArticle(ArticleDto articleDto) {
 
         ArticleEntity savedArticle = articleRepository.save(articleDto.toEntity());
         return String.format("redirect:/repeat_articles/%d", savedArticle.getId());
 
+    }
+
+    @PostMapping("/{id}/update")
+    public String update(@PathVariable Long id, ArticleDto articleDto, Model model) {
+        log.info("title:{} contents:{}", articleDto.getTitle(), articleDto.getContent());
+        ArticleEntity article = articleRepository.save(articleDto.toEntity());
+        model.addAttribute("article", article);
+        return String.format("redirect:/repeat_articles/%d", article.getId());
+    }
+
+    @GetMapping(value = "/{id}/edit")
+    public String edit(@PathVariable Long id, Model model) {
+        Optional<ArticleEntity> optionalArticle = articleRepository.findById(id);
+
+        if (!optionalArticle.isEmpty()){
+            model.addAttribute("article", optionalArticle.get());
+            return "/edit";
+        }else {
+            model.addAttribute("message", String.format("%d가 없습니다.", id));
+            return "/error";
+        }
+    }
+
+    @GetMapping("/{id}/delete")
+    public String delete(@PathVariable Long id) {
+        articleRepository.deleteById(id);
+        return "redirect:/repeat_articles";
     }
 }
